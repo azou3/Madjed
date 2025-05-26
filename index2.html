@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تطبيق طلب الطعام - متجر البيتزا والمشويات</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+  body {
+    font-family: 'Cairo', sans-serif;
+    margin: 0; padding: 0;
+    background:#fff;
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background-color: #d32f2f;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.5rem;
+    padding: 1rem 0;
+  }
+  main {
+    flex-grow: 1;
+    max-width: 1000px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+  nav button {
+    background-color: #d32f2f;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 6px;
+    padding: 0.5rem 1.2rem;
+    transition: background-color 0.3s ease;
+  }
+  nav button.active, nav button:hover {
+    background-color: #b71c1c;
+  }
+  /* تصنيفات */
+  .categories {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .categories button {
+    background: #eee;
+    border: 2px solid #d32f2f;
+    color: #d32f2f;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .categories button.active {
+    background: #d32f2f;
+    color: white;
+  }
+  /* شريط البحث */
+  #searchBar {
+    width: 100%;
+    max-width: 480px;
+    padding: 0.5rem 1rem;
+    border: 2px solid #d32f2f;
+    border-radius: 6px;
+    font-size: 1rem;
+    margin: 0 auto 1rem auto;
+    display: block;
+  }
+  /* قائمة المنتجات */
+  #productsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    gap: 1rem;
+  }
+  .product-card {
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    transition: transform 0.3s ease;
+  }
+  .product-card:hover {
+    transform: translateY(-4px);
+  }
+  .product-image {
+    height: 140px;
+    object-fit: cover;
+    width: 100%;
+  }
+  .product-info {
+    padding: 0.8rem 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .product-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+    min-height: 1.3em;
+  }
+  .product-price {
+    font-weight: 700;
+    color: #d32f2f;
+    margin-bottom: 0.6rem;
+    font-size: 1rem;
+  }
+  .btn-add-cart {
+    background-color: #388e3c;
+    color: white;
+    border: none;
+    padding: 0.6rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .btn-add-cart:hover {
+    background-color: #2e7d32;
+  }
+
+  /* سلة التسوق */
+  #cartSection {
+    display: none;
+  }
+  #cartList {
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  #cartList th, #cartList td {
+    border: 1px solid #ddd;
+    padding: 0.6rem 0.8rem;
+    text-align: center;
+  }
+  #cartList th {
+    background-color: #d32f2f;
+    color: white;
+  }
+  #cartList td {
+    font-size: 0.95rem;
+  }
+  #cartTotals {
+    font-weight: bold;
+    text-align: right;
+    margin-bottom: 1rem;
+  }
+  #btnCheckout {
+    background-color: #d32f2f;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+  }
+  #btnCheckout:hover {
+    background-color: #b71c1c;
+  }
+
+  /* إتمام الطلب */
+  #checkoutSection {
+    display: none;
+  }
+  form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  form input[type="text"],
+  form input[type="tel"] {
+    width: 100%;
+    padding: 0.5rem 0.8rem;
+    margin-bottom: 1rem;
+    border: 2px solid #d32f2f;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+  .map-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 1rem;
+    border: 2px solid #d32f2f;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  #map {
+    height: 100%;
+    width: 100%;
+  }
+  /* زر إرسال الطلب */
+  #btnPlaceOrder {
+    background-color: #d32f2f;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+  }
+  #btnPlaceOrder:hover {
+    background-color: #b71c1c;
+  }
+  /* خيارات إرسال إضافية */
+  .extra-send-options {
+    display: flex;
+    gap: 1.2rem;
+    justify-content: center;
+  }
+  .extra-send-options button {
+    background: transparent;
+    border: 2px solid #d32f2f;
+    color: #d32f2f;
+    font-weight: 700;
+    border-radius: 30px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  .extra-send-options button:hover {
+    background-color: #d32f2f;
+    color: white;
+  }
+
+  /* زر تعديل الكمية في السلة */
+  .qty-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .qty-control button {
+    border: none;
+    background: #d32f2f;
+    color: white;
+    font-weight: bold;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    user-select: none;
+  }
+  .qty-control span {
+    margin: 0 6px;
+    min-width: 20px;
+    text-align: center;
+    display: inline-block;
+  }
+  /* اختيار خريطة */
+  #mapSelector {
+    margin-bottom: 0.7rem;
+    border-radius: 6px;
+    border: 2px solid #d32f2f;
+    font-size: 1rem;
+    padding: 0.3rem 0.6rem;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  /* رسالة النجاح */
+  #orderSuccessMsg {
+    background-color: #388e3c;
+    color: white;
+    padding: 1rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  /* Responsive */
+  @media(max-width:640px) {
+    #productsGrid {
+      grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+    }
+    nav {
+      flex-wrap: wrap;
+    }
+    .categories {
+      justify-content: center;
+    }
+  }
+</style>
+</head>
+<body>
+<header>تطبيق طلب الطعام - متجر البيتزا والمشويات</header>
+<nav>
+  <button id="btnMenu" class="active" aria-label="عرض المنتجات">المنتجات</button>
+  <button id="btnCart" aria-label="عربة التسوق">سلة التسوق (0)</button>
+  <button id="btnCheckoutNav" aria-label="إتمام الطلب">إتمام الطلب</button>
+</nav>
+<main>
+  <!-- شاشة عرض المنتجات -->
+  <section id="menuSection" aria-label="قائمة المنتجات">
+    <input type="search" id="searchBar" aria-label="بحث عن منتجات" placeholder="ابحث عن المنتجات..." />
+    <div class="categories" role="tablist" aria-label="تصنيفات الطعام">
+      <button class="category-btn active" data-category="الكل" role="tab" aria-selected="true">الكل</button>
+      <button class="category-btn" data-category="بيتزا" role="tab" aria-selected="false">بيتزا</button>
+      <button class="category-btn" data-category="مأكولات سريعة" role="tab" aria-selected="false">مأكولات سريعة</button>
+      <button class="category-btn" data-category="مشاوي" role="tab" aria-selected="false">مشاوي</button>
+      <button class="category-btn" data-category="منتجات أخرى" role="tab" aria-selected="false">منتجات أخرى</button>
+    </div>
+    <div id="productsGrid" aria-live="polite" aria-atomic="true">
+      <!-- بطاقات المنتجات تظهر هنا -->
+    </div>
+  </section>
+
+  <!-- شاشة سلة التسوق -->
+  <section id="cartSection" aria-label="سلة التسوق">
+    <table id="cartList" aria-describedby="cartDescription">
+      <caption id="cartDescription" class="visually-hidden">محتويات سلة التسوق</caption>
+      <thead>
+        <tr>
+          <th scope="col">المنتج</th>
+          <th scope="col">الكمية</th>
+          <th scope="col">السعر (ر.س)</th>
+          <th scope="col">إزالة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- سلع السلة -->
+      </tbody>
+    </table>
+    <div id="cartTotals"></div>
+    <button id="btnCheckout" aria-label="انتقال لإتمام الطلب">الانتقال لإتمام الطلب</button>
+  </section>
+
+  <!-- شاشة إتمام الطلب -->
+  <section id="checkoutSection" aria-label="إتمام الطلب">
+    <form id="orderForm" novalidate>
+      <label for="customerName">اسم المشتري</label>
+      <input type="text" id="customerName" name="customerName" required placeholder="أدخل الاسم" />
+
+      <label for="customerPhone">رقم الهاتف</label>
+      <input type="tel" id="customerPhone" name="customerPhone" pattern="\\d{7,15}" required placeholder="مثال: 0775210534" />
+
+      <label for="mapSelector">اختر الخريطة</label>
+      <select id="mapSelector" aria-label="اختيار خدمة الخرائط">
+        <option value="google" selected>Google Maps</option>
+        <option value="osm">OpenStreetMap</option>
+        <option value="leaflet">Leaflet</option>
+      </select>
+
+      <div class="map-container" id="mapContainer">
+        <div id="map" role="application" aria-label="خريطة تحديد الموقع"></div>
+      </div>
+
+      <div id="orderSummary" aria-live="polite" aria-atomic="true" style="margin-bottom:1rem; font-weight:bold;"></div>
+
+      <button type="submit" id="btnPlaceOrder" aria-label="إرسال الطلب">إرسال الطلب</button>
+    </form>
+    <div class="extra-send-options" role="group" aria-label="خيارات إرسال إضافية">
+      <button id="btnCallOrder" type="button" aria-label="طلب عبر الهاتف">طلب عبر الهاتف</button>
+      <button id="btnSendWhatsApp" type="button" aria-label="مشاركة الطلب عبر واتساب">مشاركة عبر واتساب</button>
+    </div>
+    <div id="orderSuccessMsg" role="alert" aria-live="assertive"></div>
+  </section>
+</main>
+
+<script>
+  const products = [
+    { id: "p1", name: "بيتزا بيبروني", description: "بيتزا بيبروني ساخنة مع جبنة موزاريلا عالية الجودة.", price: 60, category: "بيتزا", image: "https://images.unsplash.com/photo-1601924578289-6e90718ec7a2?auto=format&fit=crop&w=400&q=80" },
+    { id: "p2", name: "بطاطا مقلية", description: "بطاطا مقلية طازجة مع صوص طماطم خاص.", price: 20, category: "مأكولات سريعة", image: "https://images.unsplash.com/photo-1559645872-e27f2a613b0a?auto=format&fit=crop&w=400&q=80" },
+    { id: "p3", name: "مشاوي مشكلة", description: "مشكلة من كباب لحم ودجاج وشيش طاووق مع أرز وخضروات.", price: 150, category: "مشاوي", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80" },
+    { id: "p4", name: "برجر دجاج", description: "برجر دجاج مشوي مع صوص خاص.", price: 40, category: "مأكولات سريعة", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80" }
+  ];
+
+  let activeCategory = "الكل";
+  let searchTerm = "";
+  let cart = [];
+
+  const btnMenu = document.getElementById("btnMenu");
+  const btnCart = document.getElementById("btnCart");
+  const btnCheckoutNav = document.getElementById("btnCheckoutNav");
+  const menuSection = document.getElementById("menuSection");
+  const cartSection = document.getElementById("cartSection");
+  const checkoutSection = document.getElementById("checkoutSection");
+  const productsGrid = document.getElementById("productsGrid");
+  const searchBar = document.getElementById("searchBar");
+  const categoriesBtns = document.querySelectorAll(".category-btn");
+  const btnCheckout = document.getElementById("btnCheckout");
+  const cartListBody = document.querySelector("#cartList tbody");
+  const cartTotals = document.getElementById("cartTotals");
+  const orderForm = document.getElementById("orderForm");
+  const customerNameInput = document.getElementById("customerName");
+  const customerPhoneInput = document.getElementById("customerPhone");
+  const orderSummary = document.getElementById("orderSummary");
+  const btnPlaceOrder = document.getElementById("btnPlaceOrder");
+  const btnCallOrder = document.getElementById("btnCallOrder");
+  const btnSendWhatsApp = document.getElementById("btnSendWhatsApp");
+  const orderSuccessMsg = document.getElementById("orderSuccessMsg");
+  const mapSelector = document.getElementById("mapSelector");
+  const mapContainer = document.getElementById("mapContainer");
+
+  let map, marker;
+  let mapType = "google";
+  let selectedLatLng = { lat: 24.7136, lng: 46.6753 };
+
+  function renderProducts() {
+    let filtered = products.filter(p => {
+      const matchCat = (activeCategory === "الكل" || p.category === activeCategory);
+      const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchCat && matchSearch;
+    });
+    productsGrid.innerHTML = "";
+    if (filtered.length === 0) {
+      productsGrid.innerHTML = "<p style='text-align:center; color:#777; font-weight:600;'>لا توجد منتجات مطابقة.</p>";
+      return;
+    }
+    filtered.forEach(p => {
+      const card = document.createElement("article");
+      card.className = "product-card";
+      card.innerHTML = `
+        <img src="${p.image}" alt="صورة ${p.name}" class="product-image" />
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-price">${p.price.toFixed(2)} ر.س</div>
+          <button class="btn-add-cart" aria-label="أضف ${p.name} إلى السلة">أضف إلى السلة</button>
+        </div>
+      `;
+      card.querySelector(".btn-add-cart").addEventListener("click", () => addToCart(p.id));
+      productsGrid.appendChild(card);
+    });
+  }
+
+  function updateCartNav() {
+    btnCart.textContent = `سلة التسوق (${cart.reduce((sum, item) => sum + item.quantity, 0)})`;
+  }
+
+  function addToCart(productId) {
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+      existing.quantity++;
+    } else {
+      cart.push({ id: productId, quantity: 1 });
+    }
+    updateCartNav();
+    alert("تمت إضافة المنتج إلى السلة.");
+  }
+
+  function renderCart() {
+    if (cart.length === 0) {
+      cartListBody.innerHTML = `<tr><td colspan="4" style="font-weight:bold; text-align:center; padding:1rem;">السلة فارغة.</td></tr>`;
+      cartTotals.textContent = "";
+      return;
+    }
+    cartListBody.innerHTML = "";
+    let total = 0;
+    cart.forEach(item => {
+      const p = products.find(prod => prod.id === item.id);
+      const subTotal = p.price * item.quantity;
+      total += subTotal;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${p.name}</td>
+        <td class="qty-control" aria-label="كمية المنتج ${p.name}">
+          <button aria-label="إنقاص الكمية" data-id="${item.id}" class="qty-decrease">−</button>
+          <span>${item.quantity}</span>
+          <button aria-label="زيادة الكمية" data-id="${item.id}" class="qty-increase">+</button>
+        </td>
+        <td>${subTotal.toFixed(2)}</td>
+        <td><button aria-label="حذف المنتج ${p.name} من السلة" data-id="${item.id}" class="btn-remove">✕</button></td>
+      `;
+      cartListBody.appendChild(tr);
+    });
+    cartTotals.textContent = `الإجمالي: ${total.toFixed(2)} ر.س`;
+    attachCartButtons();
+  }
+  function attachCartButtons() {
+    document.querySelectorAll(".qty-decrease").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.getAttribute("data-id");
+        const item = cart.find(ci => ci.id === id);
+        if (item) {
+          if (item.quantity > 1) {
+            item.quantity--;
+          } else {
+            if (confirm("هل تود إزالة هذا المنتج من السلة؟")) {
+              cart = cart.filter(ci => ci.id !== id);
+            }
+          }
+          updateCartNav();
+          renderCart();
+        }
+      };
+    });
+    document.querySelectorAll(".qty-increase").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.getAttribute("data-id");
+        const item = cart.find(ci => ci.id === id);
+        if (item) {
+          item.quantity++;
+          updateCartNav();
+          renderCart();
+        }
+      };
+    });
+    document.querySelectorAll(".btn-remove").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.getAttribute("data-id");
+        if (confirm("هل تود إزالة هذا المنتج من السلة؟")) {
+          cart = cart.filter(ci => ci.id !== id);
+          updateCartNav();
+          renderCart();
+        }
+      };
+    });
+  }
+
+  function showSection(sectionName) {
+    menuSection.style.display = sectionName === "menu" ? "block" : "none";
+    cartSection.style.display = sectionName === "cart" ? "block" : "none";
+    checkoutSection.style.display = sectionName === "checkout" ? "block" : "none";
+
+    btnMenu.classList.toggle("active", sectionName === "menu");
+    btnCart.classList.toggle("active", sectionName === "cart");
+    btnCheckoutNav.classList.toggle("active", sectionName === "checkout");
+
+    if (sectionName === "cart") renderCart();
+    else if (sectionName === "checkout") updateOrderSummary();
+  }
+
+  btnMenu.addEventListener("click", () => showSection("menu"));
+  btnCart.addEventListener("click", () => {
+    if (cart.length === 0) {
+      alert("السلة فارغة، يرجى إضافة منتجات أولاً.");
+      return;
+    }
+    showSection("cart");
+  });
+  btnCheckoutNav.addEventListener("click", () => {
+    if (cart.length === 0) {
+      alert("السلة فارغة، يرجى إضافة منتجات أولاً.");
+      return;
+    }
+    showSection("checkout");
+  });
+  btnCheckout.addEventListener("click", () => {
+    if (cart.length === 0) {
+      alert("السلة فارغة، يرجى إضافة منتجات أولاً.");
+      return;
+    }
+    showSection("checkout");
+  });
+
+  categoriesBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeCategory = btn.dataset.category;
+      categoriesBtns.forEach(b => {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
+      renderProducts();
+    });
+  });
+
+  searchBar.addEventListener("input", (e) => {
+    searchTerm = e.target.value;
+    renderProducts();
+  });
+
+  function updateOrderSummary() {
+    if (cart.length === 0) {
+      orderSummary.textContent = "السلة فارغة.";
+      return;
+    }
+    let lines = cart.map(item => {
+      const prod = products.find(p => p.id === item.id);
+      return `${prod.name} × ${item.quantity} = ${(prod.price * item.quantity).toFixed(2)} ر.س`;
+    });
+    let total = cart.reduce((acc, item) => {
+      const prod = products.find(p => p.id === item.id);
+      return acc + (prod.price * item.quantity);
+    }, 0);
+    orderSummary.textContent = lines.join(" | ") + ` | الإجمالي: ${total.toFixed(2)} ر.س`;
+  }
+
+  function initGoogleMap() {
+    if (map) {
+      mapContainer.innerHTML = '<div id="map" role="application" aria-label="خريطة تحديد الموقع"></div>';
+    }
+    const latLng = new google.maps.LatLng(selectedLatLng.lat, selectedLatLng.lng);
+    map = new google.maps.Map(document.getElementById("map"), {
+      zoom: 12,
+      center: latLng
+    });
+    marker = new google.maps.Marker({
+      position: latLng,
+      map,
+      draggable: true,
+      title: "حدد مكان التوصيل بالسحب أو النقر"
+    });
+    marker.addListener('dragend', function() {
+      const pos = marker.getPosition();
+      selectedLatLng.lat = pos.lat();
+      selectedLatLng.lng = pos.lng();
+      updateOrderSummary();
+    });
+    map.addListener('click', (event) => {
+      marker.setPosition(event.latLng);
+      selectedLatLng.lat = event.latLng.lat();
+      selectedLatLng.lng = event.latLng.lng();
+      updateOrderSummary();
+    });
+  }
+
+  function initOSMMap() {
+    mapContainer.innerHTML = '<div id="map" role="application" aria-label="خريطة تحديد الموقع"></div>';
+    map = L.map('map').setView([selectedLatLng.lat, selectedLatLng.lng], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    marker = L.marker([selectedLatLng.lat, selectedLatLng.lng], {draggable: true}).addTo(map);
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng();
+      selectedLatLng.lat = pos.lat;
+      selectedLatLng.lng = pos.lng;
+      updateOrderSummary();
+    });
+    map.on('click', e => {
+      marker.setLatLng(e.latlng);
+      selectedLatLng.lat = e.latlng.lat;
+      selectedLatLng.lng = e.latlng.lng;
+      updateOrderSummary();
+    });
+  }
+
+  function initMap() {
+    if (mapType === "google") {
+      initGoogleMap();
+    } else if (mapType === "osm" || mapType === "leaflet") {
+      if (typeof L === "undefined") {
+        alert("يرجى تحميل مكتبة Leaflet بنجاح.");
+        return;
+      }
+      initOSMMap();
+    }
+  }
+
+  mapSelector.addEventListener("change", (e) => {
+    mapType = e.target.value;
+    if (mapType === "osm" || mapType === "leaflet") {
+      loadLeafletScript(() => {
+        initMap();
+      });
+    } else if (mapType === "google") {
+      initMap();
+    }
+  });
+
+  orderForm.addEventListener("submit", e => {
+    e.preventDefault();
+    if (!orderForm.checkValidity()) {
+      orderForm.reportValidity();
+      return;
+    }
+    if (cart.length === 0) {
+      alert("السلة فارغة، يرجى إضافة منتجات.");
+      return;
+    }
+    const orderData = {
+      customerName: customerNameInput.value.trim(),
+      customerPhone: customerPhoneInput.value.trim(),
+      products: cart.map(item => {
+        const p = products.find(prod => prod.id === item.id);
+        return { name: p.name, quantity: item.quantity, price: p.price };
+      }),
+      location: { lat: selectedLatLng.lat, lng: selectedLatLng.lng },
+      totalPrice: cart.reduce((acc, item) => {
+        const p = products.find(prod => prod.id === item.id);
+        return acc + (p.price * item.quantity);
+      }, 0)
+    };
+
+    // إرسال الطلب إلى التطبيق الإداري عبر دالة وهمية (receiveOrder)
+    if (window.opener && window.opener.receiveOrder) {
+      window.opener.receiveOrder(orderData);
+      alert("تم إرسال الطلب إلى التطبيق الإداري.");
+    } else {
+      alert("لم يتم العثور على التطبيق الإداري لاستقبال الطلب. تأكد من فتح التطبيق الإداري أولاً.");
+    }
+    cart = [];
+    updateCartNav();
+    showSection("menu");
+    orderSuccessMsg.style.display = "block";
+    orderSuccessMsg.textContent = `شكرًا لك ${orderData.customerName}! تم استلام طلبك بنجاح. سيتم التواصل معك قريباً.`;
+    orderForm.reset();
+    updateOrderSummary();
+  });
+
+  btnCallOrder.addEventListener("click", () => {
+    window.location.href = "tel:0775210534";
+  });
+
+  btnSendWhatsApp.addEventListener("click", () => {
+    if (cart.length === 0) {
+      alert("السلة فارغة، يرجى إضافة منتجات.");
+      return;
+    }
+    const textOrderLines = cart.map(item => {
+      const p = products.find(prod => prod.id === item.id);
+      return `${p.name} × ${item.quantity} = ${(p.price * item.quantity).toFixed(2)} ر.س`;
+    }).join("%0A");
+    const textTotal = cart.reduce((acc, item) => {
+      const p = products.find(prod => prod.id === item.id);
+      return acc + (p.price * item.quantity);
+    }, 0).toFixed(2);
+    const message = encodeURIComponent(`طلب طعام:%0A${textOrderLines}%0Aالإجمالي: ${textTotal} ر.س`);
+    const waUrl = `https://wa.me/96500000000?text=${message}`;
+    window.open(waUrl, "_blank");
+  });
+
+  function loadLeafletScript(callback) {
+    if (window.L) {
+      callback();
+      return;
+    }
+    const leafletCSS = document.createElement("link");
+    leafletCSS.rel = "stylesheet";
+    leafletCSS.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    leafletCSS.integrity = "sha256-sA+RlD9T/tJTo52Hc1LZHkZBRxQWkT3ZyM9F4jH+6uc=";
+    leafletCSS.crossOrigin = "";
+    document.head.appendChild(leafletCSS);
+
+    const leafletJS = document.createElement("script");
+    leafletJS.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    leafletJS.integrity = "sha256-o9N1j8uIF1nd9kTZIPKdxTRzzXJ2Po9TzP1saVYcPQo=";
+    leafletJS.crossOrigin = "";
+    leafletJS.onload = callback;
+    document.body.appendChild(leafletJS);
+  }
+
+  window.initMap = function() {
+    initMap();
+  }
+
+  // بدء التشغيل  
+  renderProducts();
+  updateCartNav();
+  showSection("menu");
+
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkCirSO0JmLcD57ucNwbV06U376yt0CQ8&callback=initMap&language=ar"></script>
+</body>
+</html>
